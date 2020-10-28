@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-155991615-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-155991615-1');
+    </script>
+    <!-- my stuff -->
+    <meta charset="utf-8">
+    <title>ACT 2020 election booth results</title>
+    <meta name="author" content="Markus Mannheim">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Initial scripts -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <link href="./resources/mapStyle.css" rel="stylesheet">
+    <link href="./resources/abcLogo64.png" rel="icon">
+  </head>
+  <body>
+    <!-- Initial page layout -->
+    <div id="container">
+      <div id="selections">
+      </div>
+      <svg id="map">
+        <g id="mapGroup"></g>
+        <g id="legend"></g>
+      </svg>
+      <div id="footer">
+        Data: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>, Graphic: Markus Mannheim
+      </div>
+    </div>
+    <script>
+      // page elements
+      map = d3.select("#map");
+      mapGroup = d3.select("#mapGroup");
+      selections = d3.select("#selections");
+      // set up selections
+      types = [
+        ["labor", "#d61515"],
+        ["liberals", "#1467cc"],
+        ["greens", "#79c400"]
+      ];
+      options = selections
+        .selectAll(".option")
+          .data(types)
+        .enter().append("div")
+          .attr("class", function(d) { return d[0]; })
+          .classed("option", true)
+          .attr("value", function(d, i) { return i; })
+          .text(function(d) { return d[0].toUpperCase(); });
+      d3.select(".option").classed("selected", true);
+      // load data
+      d3.queue()
+        .defer(d3.json, "./resources/border.topojson")
+        .defer(d3.json, "./resources/water.topojson")
+        .defer(d3.json, "./resources/suburbs.topojson")
+        .defer(d3.csv, "./resources/results2020.csv")
+        .awaitAll(function(error, data) {
+          if (error) throw error;
+          // format data
+          borderData = topojson.feature(data[0], data[0].objects.areas);
+          waterData = topojson.feature(data[1], data[1].objects.areas);
+          suburbData = topojson.feature(data[2], data[2].objects.areas);
+          boothData = {
+            type: "FeatureCollection",
+            features: data[3]
+              .filter(function(d) {
+                return d.location !== "NaN";
+              })
+              .map(function(d) {
+                d.location = d.location.replace(/[\[\]]/g, "").split(", ");
+                d.location = [+d.location[0], +d.location[1]];
+                return {
+                  type: "Feature",
+                  geometry: {
+                    type: "Point",
+                    coordinates: d.location
+                  },
+                  properties: {
+                    booth: d.booth,
+                    labor: +d.labor,
+                    liberals: +d.liberals,
+                    greens: +d.greens,
+                    other: +d.other,
+                    votes: +d.votes
+                  }
+                };
+              })
+          };
+          // set up map
+
+          border = mapGroup
+            .append("path")
+              .classed("border", true)
+              .datum(borderData);
+        });
+    </script>
+  </body>
+</html>
