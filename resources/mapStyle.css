@@ -69,14 +69,17 @@ a:hover {
   font-family: "ABCSans Black", "Arial Black", sans-serif;
   font-size: 1.1rem;
 }
-.option.labor:hover, .option.labor.selected {
+.option.labor:hover, .option.labor.selected, .labor.result {
   background: #d61515;
 }
-.option.liberals:hover, .option.liberals.selected {
+.option.liberals:hover, .option.liberals.selected, .liberals.result {
   background: #1467cc;
 }
-.option.greens:hover, .option.greens.selected {
+.option.greens:hover, .option.greens.selected, .greens.result {
   background: #79c400;
+}
+.other.result {
+   background: #999;
 }
 h1, p {
   margin: 0;
@@ -87,7 +90,14 @@ h1, p {
 }
 .booth {
   stroke: #333;
-  stroke-width: .5px;
+  stroke-width: .5;
+}
+.boothGroup.selected .booth {
+  stroke: #FFB300;
+  stroke-width: 1;
+}
+.cell {
+  fill: rgba(0, 0, 0, 0);
 }
 .border {
   stroke: #666;
@@ -97,27 +107,59 @@ h1, p {
 .water {
   fill: #666;
 }
-.legend rect {
+#legend rect {
   stroke: #333;
+  fill: url(#legendGradient);
 }
 .suburb {
   fill: white;
   stroke: #ccc;
 }
-.axis .tick text {
+.tick text {
   fill: #333;
 }
-.axis .tick line {
+.tick line {
   stroke: #333;
 }
-.axis .domain path {
+.domain {
   stroke: none;
 }
-.label {
+#tip {
+  position: absolute;
+  background: rgba(28, 28, 28, .8);
+  padding: 5px;
+  border-radius: 5px;
+  width: 175px;
+  box-shadow: 1px 1px 5px #666;
+  color: white;
+  pointer-events: none;
+  opacity: 0;
+}
+.bar {
+  height: 20px;
+  width: 100%;
+  background: #666;
+  margin-bottom: 3px;
+  display: flex;
+  justify-content: space-between;
+  font-size: .9rem;
+}
+.bar .result {
+  padding-left: 5px;
+  line-height: 20px;
+}
+.count {
+  line-height: 20px;
+  padding-right: 5px;
+}
+h1 {
+  font-size: 1rem;
   font-family: "ABCSans Black", "Arial Black", sans-serif;
-  fill: #444;
-  font-size: .75rem;
-  text-anchor: middle;
+  margin-bottom: 5px;
+}
+p {
+  font-family: "ABCSans Light", "Arial Narrow", sans-serif;
+  font-size: .8rem;
 }
 @media only screen and (max-width: 500px) {
   #title {
@@ -130,5 +172,23 @@ h1, p {
     width: 70px;
     margin-left: 5px;
     font-size: 1rem;
+  }
+  h1 {
+    font-size: .9rem;
+  }
+  p {
+    font-size: .7rem;
+  }
+  .bar {
+    height: 15px;
+    font-size: .75rem;
+  }
+  .bar .result {
+    padding-left: 3px;
+    line-height: 15px;
+  }
+  .count {
+    line-height: 15px;
+    padding-right: 3px;
   }
 }
