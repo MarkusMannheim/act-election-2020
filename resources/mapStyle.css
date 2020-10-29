@@ -45,11 +45,9 @@ body {
   position: fixed;
   display: flex;
   justify-content: flex-end;
-  margin-bottom: .5rem;
 }
 #footer {
   margin: .5rem 0;
-  text-align: right;
   color: #666;
   font-size: .9rem;
 }
@@ -86,12 +84,6 @@ h1, p {
 #map {
   width: 100%;
   height: 100%;
-  background: wheat;
-}
-.label {
-  position: absolute;
-  background-color: #333;
-  padding: 10px;
 }
 .booth {
   stroke: #333;
@@ -100,7 +92,7 @@ h1, p {
 .border {
   stroke: #666;
   stroke-dasharray: 2 3;
-  fill: #e6e6e6;
+  fill: #f2f2f2;
 }
 .water {
   fill: #666;
@@ -110,7 +102,7 @@ h1, p {
 }
 .suburb {
   fill: white;
-  stroke: #e6e6e6;
+  stroke: #ccc;
 }
 .axis .tick text {
   fill: #333;
@@ -129,6 +121,14 @@ h1, p {
 }
 @media only screen and (max-width: 500px) {
   #title {
+    font-size: 1rem;
+  }
+  #footer {
+    font-size: .8rem;
+  }
+  .option {
+    width: 70px;
+    margin-left: 5px;
     font-size: 1rem;
   }
 }

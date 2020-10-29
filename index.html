@@ -31,7 +31,7 @@
         <g id="legend"></g>
       </svg>
       <div id="footer">
-        Data: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>, Graphic: Markus Mannheim
+        Booth circle size reflects number of votes cast. Early votes excluded. Data source: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>. Graphic: Markus Mannheim
       </div>
     </div>
     <script>
@@ -45,6 +45,7 @@
         ["liberals", "#1467cc"],
         ["greens", "#79c400"]
       ];
+      type = 0;
       options = selections
         .selectAll(".option")
           .data(types)
@@ -52,7 +53,8 @@
           .attr("class", function(d) { return d[0]; })
           .classed("option", true)
           .attr("value", function(d, i) { return i; })
-          .text(function(d) { return d[0].toUpperCase(); });
+          .text(function(d) { return d[0].toUpperCase(); })
+          .on("click", clickOption);
       d3.select(".option").classed("selected", true);
       // load data
       d3.queue()
@@ -92,13 +94,66 @@
                 };
               })
           };
-          // set up map
-
+          // set up map functions
+          projection = d3.geoConicEqualArea()
+            .parallels([-26.29, -44.29])
+            .rotate([-149.126944, 0]);
+          path = d3.geoPath()
+            .projection(projection);
+          boothSize = d3.scaleLinear()
+            .domain(d3.extent(boothData.features, function(d) { return d.properties.votes; }));
+          boothColour = d3.scaleLinear()
+            .interpolate(d3.interpolateHsl);
+          // map elements
           border = mapGroup
             .append("path")
               .classed("border", true)
               .datum(borderData);
+          suburbs = mapGroup
+            .selectAll(".suburb")
+              .data(suburbData.features)
+            .enter().append("path")
+              .classed("suburb", true);
+          water = mapGroup
+            .append("path")
+              .classed("water", true)
+              .datum(waterData);
+          booths = mapGroup
+            .selectAll(".booth")
+              .data(boothData.features)
+            .enter().append("path")
+              .classed("booth", true)
+              .classed("labor", true);
+          colourBooths();
+          // map dimensions
+          window.addEventListener("resize", resize);
+          resize()
         });
+
+      function clickOption() {
+        type = this.getAttribute("value");
+        options.classed("selected", false);
+        this.classList.add("selected");
+        colourBooths();
+      }
+
+      function colourBooths() {
+        boothColour.domain(d3.extent(boothData.features, function(d) { return d.properties[types[type][0]]; }))
+          .range(["white", types[type][1]]);
+        booths.style("fill", function(d) { return boothColour(d.properties[types[type][0]]); });
+      }
+
+      function resize() {
+        let dimensions = document.getElementById("map").getBoundingClientRect();
+        width = dimensions.width;
+        height = dimensions.height;
+        margin = { top: 45, right: 15, bottom: 15, left: 15 };
+        boothSize.range(width < 500 ? [3, 7] : [3, 8]);
+        projection.fitExtent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]], boothData);
+        mapGroup.selectAll(".border, .suburb, .water")
+          .attr("d", path);
+        booths.attr("d", function(d) { return path.pointRadius(boothSize(d.properties.votes))(d); });
+      }
     </script>
   </body>
 </html>
