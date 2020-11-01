@@ -1,0 +1,194 @@
+/* colours
+blue: #009CBF
+orange: #F75F00
+green: #00A388
+--tint-1: #333;
+--tint-2: #666;
+--tint-3: #999;
+--tint-4: #ccc;
+--tint-5: #e6e6e6;
+--tint-6: #f2f2f2;
+ */
+@font-face {
+  font-family: "ABCSans Regular";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Regular"), url("./abcsans-regular.woff") format("woff");
+}
+@font-face {
+  font-family: "ABCSans Black";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Black"), url("./abcsans-black.woff") format("woff");
+}
+:root {
+  font-size: 1em;
+  font-family: "ABCSans Regular", "Arial", sans-serif;
+  color: #333;
+}
+body {
+  margin: 0;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+}
+#container {
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+}
+#selections {
+  width: 100%;
+  position: fixed;
+  display: flex;
+  justify-content: flex-end;
+}
+#footer {
+  margin: .5rem 0;
+  color: #666;
+  font-size: .9rem;
+}
+a {
+  text-decoration: none;
+  color: #009CBF;
+}
+a:hover {
+  color: #FFB300;
+}
+.option {
+  background: #333;
+  padding: 5px;
+  width: 80px;
+  margin-left: 10px;
+  text-align: center;
+  box-shadow: 1px 1px 5px #666;
+  color: white;
+  font-family: "ABCSans Black", "Arial Black", sans-serif;
+  font-size: 1.1rem;
+}
+.option.labor:hover, .option.labor.selected, .labor.result {
+  background: #d61515;
+}
+.option.liberals:hover, .option.liberals.selected, .liberals.result {
+  background: #1467cc;
+}
+.option.greens:hover, .option.greens.selected, .greens.result {
+  background: #79c400;
+}
+.other.result {
+   background: #999;
+}
+h1, p {
+  margin: 0;
+}
+#map {
+  width: 100%;
+  height: 100%;
+}
+.booth {
+  stroke: #333;
+  stroke-width: .5;
+}
+.boothGroup.selected .booth {
+  stroke: #FFB300;
+  stroke-width: 1;
+}
+.cell {
+  fill: rgba(0, 0, 0, 0);
+}
+.border {
+  stroke: #666;
+  stroke-dasharray: 2 3;
+  fill: #f2f2f2;
+}
+.water {
+  fill: #666;
+}
+#legend rect {
+  stroke: #333;
+  fill: url(#legendGradient);
+}
+.suburb {
+  fill: white;
+  stroke: #ccc;
+}
+.tick text {
+  fill: #333;
+}
+.tick line {
+  stroke: #333;
+}
+.domain {
+  stroke: none;
+}
+#tip {
+  position: absolute;
+  background: rgba(28, 28, 28, .8);
+  padding: 5px;
+  border-radius: 5px;
+  width: 175px;
+  box-shadow: 1px 1px 5px #666;
+  color: white;
+  pointer-events: none;
+  opacity: 0;
+}
+.bar {
+  height: 20px;
+  width: 100%;
+  background: #666;
+  margin-bottom: 3px;
+  display: flex;
+  justify-content: space-between;
+  font-size: .9rem;
+}
+.bar .result {
+  padding-left: 5px;
+  line-height: 20px;
+}
+.count {
+  line-height: 20px;
+  padding-right: 5px;
+}
+h1 {
+  font-size: 1rem;
+  font-family: "ABCSans Black", "Arial Black", sans-serif;
+  margin-bottom: 5px;
+}
+p {
+  font-family: "ABCSans Light", "Arial Narrow", sans-serif;
+  font-size: .8rem;
+}
+@media only screen and (max-width: 500px) {
+  #title {
+    font-size: 1rem;
+  }
+  #footer {
+    font-size: .8rem;
+  }
+  .option {
+    width: 70px;
+    margin-left: 5px;
+    font-size: 1rem;
+  }
+  h1 {
+    font-size: .9rem;
+  }
+  p {
+    font-size: .7rem;
+  }
+  .bar {
+    height: 15px;
+    font-size: .75rem;
+  }
+  .bar .result {
+    padding-left: 3px;
+    line-height: 15px;
+  }
+  .count {
+    line-height: 15px;
+    padding-right: 3px;
+  }
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-155991615-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-155991615-1');
+    </script>
+    <!-- my stuff -->
+    <meta charset="utf-8">
+    <title>ACT 2020 election preference flows</title>
+    <meta name="author" content="Markus Mannheim">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Initial scripts -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <link href="./resources/chartStyle.css" rel="stylesheet">
+    <link href="./resources/abcLogo64.png" rel="icon">
+  </head>
+  <body>
+    <!-- Initial page layout -->
+    <div id="container">
+      <div id="selections"></div>
+      <div id="navigation"></div>
+      <div id="chart"></div>
+      <div id="footer">
+        Data source: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>. Graphic: Markus Mannheim
+      </div>
+    </div>
+    <script>
+      // page elements
+      chart = d3.select("#chart");
+      selections = d3.select("#selections");
+      navigation = d3.select("#navigation");
+      // set up selections
+
+      // load data
+      d3.queue()
+        .defer(d3.csv, "./resources/electorates.csv")
+        .defer(d3.csv, "./resources/preferences.csv")
+        .awaitAll(function(error, data) {
+          if (error) throw error;
+          // format data
+          electorates = data[0];
+          preferenceData = data[1];
+
+          // set up chart
+
+
+          // chart dimensions
+          window.addEventListener("resize", resize);
+          resize()
+        });
+
+      function resize() {
+
+      }
+    </script>
+  </body>
+</html>

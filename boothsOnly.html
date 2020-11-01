@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-155991615-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-155991615-1');
+    </script>
+    <!-- my stuff -->
+    <meta charset="utf-8">
+    <title>ACT 2020 election booth results</title>
+    <meta name="author" content="Markus Mannheim">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Initial scripts -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <link href="./resources/mapStyle.css" rel="stylesheet">
+    <link href="./resources/abcLogo64.png" rel="icon">
+  </head>
+  <body>
+    <!-- Initial page layout -->
+    <div id="container">
+      <div id="selections">
+      </div>
+      <svg id="map">
+        <g id="mapGroup"></g>
+        <g id="legend">
+          <defs>
+            <linearGradient id="legendGradient" x1="0%" x2="0%" y1="100%" y2="0%"></linearGradient>
+          </defs>
+          <rect></rect>
+          <g id="axisGroup"></g>
+        </g>
+      </svg>
+      <div id="footer">
+        Circle size reflects number of votes cast. Early votes excluded. Data source: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>. Graphic: Markus Mannheim
+      </div>
+      <div id="tip">
+        <h1>booth</h1>
+        <div id="graph"></div>
+        <p>votes</p>
+      </div>
+    </div>
+    <script>
+      // page elements
+      map = d3.select("#map");
+      mapGroup = d3.select("#mapGroup");
+      selections = d3.select("#selections");
+      tip = d3.select("#tip");
+      graph = d3.select("#graph");
+      legend = d3.select("#legend");
+      axisGroup = d3.select("#axisGroup");
+      // set up selections
+      types = [
+        ["labor", "#d61515"],
+        ["liberals", "#1467cc"],
+        ["greens", "#79c400"]
+      ];
+      type = 0;
+      options = selections
+        .selectAll(".option")
+          .data(types)
+        .enter().append("div")
+          .attr("class", function(d) { return d[0]; })
+          .classed("option", true)
+          .attr("value", function(d, i) { return i; })
+          .text(function(d) { return d[0].toUpperCase(); })
+          .on("click", clickOption);
+      d3.select(".option").classed("selected", true);
+      // load data
+      d3.queue()
+        .defer(d3.json, "./resources/border.topojson")
+        .defer(d3.json, "./resources/water.topojson")
+        .defer(d3.json, "./resources/suburbs.topojson")
+        .defer(d3.csv, "./resources/results2020.csv")
+        .awaitAll(function(error, data) {
+          if (error) throw error;
+          // format data
+          borderData = topojson.feature(data[0], data[0].objects.areas);
+          waterData = topojson.feature(data[1], data[1].objects.areas);
+          suburbData = topojson.feature(data[2], data[2].objects.areas);
+          boothData = {
+            type: "FeatureCollection",
+            features: data[3]
+              .filter(function(d) {
+                return d.location !== "NaN";
+              })
+              .map(function(d) {
+                d.location = d.location.replace(/[\[\]]/g, "").split(", ");
+                d.location = [+d.location[0], +d.location[1]];
+                return {
+                  type: "Feature",
+                  geometry: {
+                    type: "Point",
+                    coordinates: d.location
+                  },
+                  properties: {
+                    booth: d.booth,
+                    labor: +d.labor,
+                    liberals: +d.liberals,
+                    greens: +d.greens,
+                    other: +d.other,
+                    votes: +d.votes
+                  }
+                };
+              })
+          };
+          // set up map functions
+          projection = d3.geoConicEqualArea()
+            .parallels([-26.29, -44.29])
+            .rotate([-149.126944, 0]);
+          path = d3.geoPath()
+            .projection(projection);
+          boothSize = d3.scaleLinear()
+            .domain(d3.extent(boothData.features, function(d) { return d.properties.votes; }));
+          boothColour = d3.scaleLinear()
+            .interpolate(d3.interpolateHsl);
+          voronoi = d3.voronoi()
+            .x(function(d) { return projection(d.geometry.coordinates)[0]; })
+            .y(function(d) { return projection(d.geometry.coordinates)[1]; });
+          // map elements
+          border = mapGroup
+            .append("path")
+              .classed("border", true)
+              .datum(borderData);
+          suburbs = mapGroup
+            .selectAll(".suburb")
+              .data(suburbData.features)
+            .enter().append("path")
+              .classed("suburb", true);
+          water = mapGroup
+            .append("path")
+              .classed("water", true)
+              .datum(waterData);
+          legend.select("#legendGradient")
+            .selectAll("stop")
+              .data(d3.range(11))
+            .enter().append("stop")
+              .attr("offset", function(d) { return d * 10 + "%"; });
+          y = d3.scaleLinear();
+          axis = d3.axisLeft(y)
+            .ticks(5, ".0%")
+            .tickSizeOuter(0);
+          // map dimensions
+          window.addEventListener("resize", resize);
+          resize()
+        });
+
+      function clickOption() {
+        type = this.getAttribute("value");
+        options.classed("selected", false);
+        this.classList.add("selected");
+        colourBooths();
+      }
+
+      function colourBooths() {
+        boothColour.domain(d3.extent(boothData.features, function(d) { return d.properties[types[type][0]]; }))
+          .range(["white", types[type][1]]);
+        d3.selectAll(".booth").style("fill", function(d) { return boothColour(d.data.properties[types[type][0]]); });
+        y.domain(boothColour.domain());
+        d3.selectAll("stop")
+          .attr("style", function(d) { return "stop-color: " + boothColour(boothColour.domain()[0] + (boothColour.domain()[1] - boothColour.domain()[0]) * (d / 10)) + "; stop-opacity: 1;"; });
+        axisGroup.call(axis);
+      }
+
+      function resize() {
+        dimensions = document.getElementById("map").getBoundingClientRect();
+        width = dimensions.width;
+        height = dimensions.height;
+        margin = { top: 45, right: 15, bottom: 15, left: 15 };
+        boothSize.range(width < 500 ? [3, 7] : [3, 8]);
+        projection.fitExtent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]], boothData);
+        mapGroup.selectAll(".border, .suburb, .water")
+          .attr("d", path);
+        // arrange booths and cells
+        voronoi.size([width, height]);
+        boothGroups = mapGroup
+          .selectAll(".boothGroup")
+            .data(voronoi.polygons(boothData.features, function(d) { return d.data.properties.booth; }));
+        boothGroups.exit()
+          .remove();
+        boothGroups.select(".booth")
+          .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties.votes))(d.data); });
+        boothGroups.select(".cell")
+          .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
+        entering = boothGroups
+          .enter().append("g")
+            .classed("boothGroup", true);
+        entering.append("path")
+          .classed("booth", true)
+          .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties.votes))(d.data); });
+        entering.append("path")
+          .classed("cell", true)
+          .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; })
+          .on("mouseover", boothHover)
+          .on("mouseout", boothOut);
+        // set up legend
+        legend.attr("transform", "translate(" + (width - 60) + ", " + (height - (width < 500 ? 250 : 350)) + ")");
+        legend.select("rect")
+          .attr("x", 15)
+          .attr("y", 0)
+          .attr("width", 30)
+          .attr("height", width < 500 ? 245 : 345);
+        y.range(width < 500 ? [245, 0] : [345, 0]);
+        axisGroup.attr("transform", "translate(15, 0)");
+        colourBooths();
+      }
+
+      function boothHover(d) {
+        d3.select(this.parentNode)
+          .classed("selected", true)
+          .raise()
+          .select(".booth")
+            .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties.votes) + 2)(d.data); });
+        // fill in tooltip
+        tip.style("opacity", 0)
+          .style("top", "0px")
+          .style("left", "0px");
+        tip.select("h1").text(d.data.properties.booth);
+        tip.select("p").text(d3.format(",.0f")(d.data.properties.votes) + " votes");
+        let votes = [
+          ["labor", d.data.properties.labor, "LAB"],
+          ["liberals", d.data.properties.liberals, "LIB"],
+          ["greens", d.data.properties.greens, "GRN"],
+          ["other", d.data.properties.other, "OTH"]
+        ].sort(function(a, b) {
+          return d3.descending(a[1], b[1]);
+        });
+        barScale = d3.scaleLinear()
+          .range([0, 100])
+          .domain([0, d3.max(votes, function(e) { return e[1]; }) + .15]).nice();
+        bars = graph
+          .selectAll(".bar")
+            .data(votes)
+          .enter().append("div")
+            .classed("bar", true);
+        results = bars
+          .append("div")
+            .attr("class", function(e) { return e[0] + " result"; })
+            .style("width", function(e) { return barScale(e[1]) + "%"; })
+            .text(function(e) { return e[2]; });
+        counts = bars
+          .append("div")
+            .classed("count", true)
+            .text(function(e) { return d3.format(".1%")(e[1]); });
+        let centroid = projection(d.data.geometry.coordinates);
+        let tipDim = document.getElementById("tip").getBoundingClientRect();
+        let headerHeight =
+        tip.style("top", function() {
+            if (centroid[1] < 60) {
+              return "75px";
+            } else if (centroid[1] > height - 30 - tipDim.height) {
+              return (centroid[1] - 15 - tipDim.height) + "px";
+            } else {
+              return (centroid[1] + 15) + "px";
+            }
+          })
+          .style("left", function() {
+            if (centroid[0] < tipDim.width / 2 + 15) {
+              return "15px";
+            } else if (centroid[0] > width - tipDim.width / 2 - 15) {
+              return (width - tipDim.width - 15) + "px";
+            } else {
+              return (centroid[0] - tipDim.width / 2) + "px";
+            }
+          });
+        tip.style("opacity", 1);
+      }
+
+      function boothOut(d) {
+        d3.select(this.parentNode)
+          .classed("selected", false);
+        d3.select(this.parentNode)
+          .select(".booth")
+            .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties.votes))(d.data); });
+        bars.remove();
+        tip.style("opacity", 0);
+      }
+    </script>
+  </body>
+</html>

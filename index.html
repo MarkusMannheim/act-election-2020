@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -24,8 +23,7 @@
   <body>
     <!-- Initial page layout -->
     <div id="container">
-      <div id="selections">
-      </div>
+      <div id="selections"></div>
       <svg id="map">
         <g id="mapGroup"></g>
         <g id="legend">
@@ -37,7 +35,7 @@
         </g>
       </svg>
       <div id="footer">
-        Circle size reflects number of votes cast. Early votes excluded. Data source: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>. Graphic: Markus Mannheim
+        Circle size reflects number of votes at polling place. Data source: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>. Graphic: Markus Mannheim
       </div>
       <div id="tip">
         <h1>booth</h1>
@@ -76,7 +74,7 @@
         .defer(d3.json, "./resources/border.topojson")
         .defer(d3.json, "./resources/water.topojson")
         .defer(d3.json, "./resources/suburbs.topojson")
-        .defer(d3.csv, "./resources/results2020.csv")
+        .defer(d3.csv, "./resources/data2020.csv")
         .awaitAll(function(error, data) {
           if (error) throw error;
           // format data
@@ -172,7 +170,7 @@
         width = dimensions.width;
         height = dimensions.height;
         margin = { top: 45, right: 15, bottom: 15, left: 15 };
-        boothSize.range(width < 500 ? [3, 7] : [3, 8]);
+        boothSize.range(width < 500 ? [4, 10] : [4, 13]);
         projection.fitExtent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]], boothData);
         mapGroup.selectAll(".border, .suburb, .water")
           .attr("d", path);
