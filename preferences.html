@@ -23,19 +23,26 @@
     <!-- Initial page layout -->
     <div id="container">
       <div id="selections"></div>
-      <div id="navigation"></div>
-      <div id="chart"></div>
+      <div id="chart">
+        <div id="prepare">Preparing chart ...</div>
+      </div>
+      <div id="navigation">
+        <div class="icon maxed" id="back" onclick="clickBack()"></div>
+        <div class="icon" id="play" onclick="clickPlay()"></div>
+        <div class="icon hidden" id="pause" onclick="clickPause()"></div>
+        <div class="icon" id="forward" onclick="clickForward()"></div>
+      </div>
       <div id="footer">
         Data source: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>. Graphic: Markus Mannheim
       </div>
     </div>
     <script>
       // page elements
+      container = d3.select("#container");
       chart = d3.select("#chart");
       selections = d3.select("#selections");
       navigation = d3.select("#navigation");
-      // set up selections
-
+      prepare = d3.select("#prepare");
       // load data
       d3.queue()
         .defer(d3.csv, "./resources/electorates.csv")
@@ -43,19 +50,289 @@
         .awaitAll(function(error, data) {
           if (error) throw error;
           // format data
-          electorates = data[0];
-          preferenceData = data[1];
-
-          // set up chart
-
-
+          electorateData = data[0]
+            .map(function(d) {
+              d.quota = +d.quota;
+              return d;
+            });
+          parties = [
+            ["ACT Labor", "ALP"],
+            ["Animal Justice Party", "AJP"],
+            ["The ACT Greens", "GRN"],
+            ["Canberra Liberals", "LIB"],
+            ["Liberal Democrats", "LDP"],
+            ["Sustainable Australia - Stop overdevelopment. Stop corruption.", "SUS"],
+            ["Shooters, Fishers and Farmers Party (ACT)", "SFF"],
+            ["Australian Federation Party Australian Capital Territory", "FED"],
+            ["nan", "nan"],
+            ["Labour DLP", "DLP"],
+            ["Australian Climate Change Justice Party", "CCJ"],
+            ["Belco Party", "BEL"],
+            ["Ungrouped", "UNG"],
+            ["The Community Action Party (ACT)", "CAP"],
+            ["Canberra Progressives", "PRG"],
+            ["David Pollard Independent", "IND"]
+          ];
+          preferenceData = data[1]
+            .map(function(d) {
+              let party = parties
+                .filter(function(e) {
+                  return e[0] == d.party;
+                });
+              d.party = party[0][1];
+              let counts = d.counts
+                .replace(/[\[\]]/g, "")
+                .split(", ")
+                .map(function(d) { return +d; });
+              d.counts = counts;
+              return d;
+            });
+          // set up selections
+          electorate = 0;
+          options = selections
+            .selectAll(".option")
+              .data(electorateData)
+            .enter().append("div")
+              .classed("option", true)
+              .attr("value", function(d, i) { return i; })
+              .text(function(d) { return d.electorate.toUpperCase(); })
+              .on("click", clickOption);
+          d3.select(".option").classed("selected", true);
+          // set up navigation
+          navigationData = ["back", "play", "pause", "forward"];
+          navigationData.forEach(function(d) {
+            d3.xml("./resources/icon" + d[0].toUpperCase() + d.slice(1) + ".svg")
+              .mimeType("image/svg+xml")
+              .get(function(error, xml) {
+                if (error) throw error;
+                document.getElementById(d).appendChild(xml.documentElement);
+              });
+          });
           // chart dimensions
           window.addEventListener("resize", resize);
-          resize()
+          // set up chart
+          prepareChart();
         });
 
-      function resize() {
+      function clickOption() {
+        d3.selectAll("#forward, #play, #pause").classed("maxed", false);
+        d3.select("#back").classed("maxed", true);
+        d3.select("#play").classed("hidden", false);
+        d3.select("#pause").classed("hidden", true);
+        d3.selectAll("#chart *, #quotaLine, #quotaLabel")
+          .remove();
+        electorate = this.getAttribute("value");
+        options.classed("selected", false);
+        this.classList.add("selected");
+        calculateData();
+      }
 
+      function prepareChart() {
+        d3.selectAll(".icon, .option")
+          .classed("transition", true);
+        prepare.transition()
+          .duration(500)
+          .style("opacity", 1)
+        .transition()
+          .delay(500)
+          .duration(500)
+          .style("opacity", 0)
+          .on("end", calculateData);
+      }
+
+      function calculateData() {
+        quota = electorateData[electorate].quota;
+        activeData = preferenceData
+          .filter(function(d) {
+            return d.electorate == electorateData[electorate].electorate && d.candidate !== "comment";
+          });
+        maxQuota = d3.max(activeData, function(d) { return d3.max(d.counts); });
+        count = 0;
+        loop = 500;
+        play = false;
+        setUpChart();
+      }
+
+      function setUpChart() {
+        quotaLine = container
+          .append("div")
+            .attr("id", "quotaLine");
+        quotaLabel = container
+          .append("div")
+            .attr("id", "quotaLabel")
+            .html("quota<br>" + d3.format(",.0f")(quota));
+        quotaSize = quotaLabel.node()
+          .getBoundingClientRect();
+        x = d3.scaleLinear()
+          .domain([0, maxQuota]);
+        y = d3.scaleBand()
+          .domain(activeData.map(function(d) { return d.candidate; }))
+          .paddingOuter(0)
+          .paddingInner(.1);
+        bars = chart
+          .selectAll(".bar")
+            .data(activeData)
+          .enter().append("div")
+            .attr("class", function(d) { return d.party; })
+            .classed("bar", true);
+        stubs = bars
+          .append("div")
+            .classed("stub", true)
+            .html(function(d) { return d.candidate == "exhausted" ? "exhausted votes" : d.candidate + " <span>(" + d.party + ")</span>"; });
+        results = bars
+          .append("div")
+            .classed("result", true)
+            .style("width", "0px");
+        results.append("p");
+        resize();
+      }
+
+      function clickBack() {
+        count = count - 1;
+        if (play) {
+          clickPause();
+        }
+        d3.selectAll("#forward, #play, #pause")
+          .classed("maxed", false);
+        if (count < 1) {
+          d3.select("#back").classed("maxed", true);
+        }
+        d3.select("#back").classed("transition", true)
+          .transition()
+            .duration(loop)
+            .style("opacity", 1)
+            .on("end", function() {
+              d3.select("#back").classed("transition", false);
+            });
+        moveResults();
+      }
+
+      function clickPlay() {
+        play = true;
+        d3.select("#play")
+          .classed("hidden", true);
+        d3.select("#pause")
+          .classed("hidden", false);
+        count = count + 1;
+        d3.select("#back")
+          .classed("maxed", false);
+        if (count > activeData[0].counts.length - 2) {
+          d3.selectAll("#forward, #play, #pause")
+            .classed("maxed", true);
+          clickPause();
+        }
+        moveResults();
+        d3.timeout(function() {
+          if (play && count < activeData[0].counts.length - 1) clickPlay();
+        }, loop);
+      }
+
+      function clickPause() {
+        play = false;
+        d3.select("#play")
+          .classed("hidden", false);
+        d3.select("#pause")
+          .classed("hidden", true);
+      }
+
+      function clickForward() {
+        count = count + 1;
+        if (play) {
+          clickPause();
+        }
+        d3.select("#back")
+          .classed("maxed", false);
+        if (count > activeData[0].counts.length - 2) {
+          d3.selectAll("#forward, #play")
+            .classed("maxed", true);
+          play = false;
+        }
+        d3.select("#forward").classed("transition", true)
+          .transition()
+            .duration(loop)
+            .style("opacity", 1)
+            .on("end", function() {
+              d3.select("#forward").classed("transition", false);
+            });
+        moveResults();
+      }
+
+      function resize() {
+        dimensions = document.getElementById("chart")
+          .getBoundingClientRect();
+          if (dimensions.width < 500 ) {
+            x.range([0, dimensions.width - 158]);
+          } else {
+            x.range([0, dimensions.width - 198]);
+          }
+        y.range([dimensions.y, dimensions.y + dimensions.height]);
+        quotaLabel.style("top", (dimensions.y - quotaSize.height - 5) + "px")
+          .style("left", (x(quota) - quotaSize.width / 2 + dimensions.x + (dimensions.width < 500 ? 158 : 198)) + "px");
+        quotaLine.style("top", dimensions.y + "px")
+          .style("left", (x(quota) + dimensions.x + (dimensions.width < 500 ? 158 : 198)) + "px")
+          .style("height", dimensions.height + "px");
+        bars.style("height", y.bandwidth() + "px")
+          .style("top", function(d) { return y(d.candidate) + "px"; })
+          .style("left", dimensions.x + "px")
+          .style("line-height", y.bandwidth() + "px")
+          .transition()
+            .delay(function(d, i) { return 500 / activeData.length * i; })
+            .style("width", dimensions.width + "px");
+        stubs.transition()
+          .delay(function(d, i) { return 500 / activeData.length * i; })
+          .style("opacity", 1)
+          .on("end", function() {
+            d3.selectAll(".icon, .option")
+              .classed("transition", false);
+          });
+      }
+
+      function moveResults() {
+        if (count > 1) {
+          elected = activeData
+            .filter(function(d) {
+              return d.candidate !== "exhausted" && d.counts[count - 1] >= quota;
+            }).length;
+        } else {
+          elected = 0;
+        }
+        sortedData = activeData
+          .slice(elected, -1)
+          .sort(function(a, b) {
+            return d3.descending(a.counts[count], b.counts[count]);
+          });
+        sortedData = activeData
+          .slice(0, elected)
+          .concat(sortedData);
+        sortedData.push(activeData[activeData.length - 1]);
+        activeData = sortedData;
+        y.domain(activeData.map(function(d) { return d.candidate; }));
+
+        bars.each(function(d) {
+          if (d.counts[count] >= quota && d.candidate !== "exhausted") {
+            d3.select(this).classed("eliminated", false)
+              .classed("elected", true);
+          } else if (!d.counts[count] && d.candidate !== "exhausted") {
+            d3.select(this).classed("elected", false)
+              .classed("eliminated", true);
+          } else {
+            d3.select(this).classed("elected", false)
+              .classed("eliminated", false);
+          }
+        });
+        bars.transition()
+          .ease(d3.easeLinear)
+          .duration(loop)
+          .style("top", function(d) { return y(d.candidate) + "px"; });
+        results.transition()
+          .ease(d3.easeLinear)
+          .duration(loop)
+          .style("width", function(d) { return x(d.counts[count]) + "px"; });
+        if (count > activeData[0].counts.length - 2) {
+          bars.filter(function(d) {
+            return activeData[4].candidate == d.candidate;
+          }).classed("elected", true);
+        }
       }
     </script>
   </body>

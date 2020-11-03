@@ -33,21 +33,46 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: white;
 }
 #container {
-  height: 100%;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-bottom: .5rem;
+  padding: .5rem;
   display: flex;
   flex-flow: column;
+  border: solid .5px #e6e6e6;
 }
 #selections {
   width: 100%;
-  position: fixed;
   display: flex;
-  justify-content: flex-end;
+  flex-flow: wrap;
+  justify-content: space-around;
+  margin-bottom: 2rem;
+}
+#navigation {
+  display: flex;
+  justify-content: center;
+  margin: .5rem 0;
+}
+.icon svg {
+  width: 4rem;
+  fill: #009CBF;
+  pointer-events: none;
+}
+.icon.maxed, .transition {
+  pointer-events: none;
+}
+.icon.maxed svg {
+  fill: #ccc;
+}
+.icon.hidden {
+  display: none;
 }
 #footer {
-  margin: .5rem 0;
   color: #666;
   font-size: .9rem;
 }
@@ -55,140 +80,137 @@ a {
   text-decoration: none;
   color: #009CBF;
 }
-a:hover {
-  color: #FFB300;
-}
 .option {
   background: #333;
   padding: 5px;
-  width: 80px;
-  margin-left: 10px;
+  width: 135px;
+  margin-bottom: .5rem;
   text-align: center;
   box-shadow: 1px 1px 5px #666;
   color: white;
   font-family: "ABCSans Black", "Arial Black", sans-serif;
   font-size: 1.1rem;
 }
-.option.labor:hover, .option.labor.selected, .labor.result {
-  background: #d61515;
-}
-.option.liberals:hover, .option.liberals.selected, .liberals.result {
-  background: #1467cc;
-}
-.option.greens:hover, .option.greens.selected, .greens.result {
-  background: #79c400;
-}
-.other.result {
-   background: #999;
+.option.selected {
+  background: #009CBF;
 }
 h1, p {
   margin: 0;
 }
-#map {
+#chart {
   width: 100%;
   height: 100%;
 }
-.booth {
-  stroke: #333;
-  stroke-width: .5;
-}
-.boothGroup.selected .booth {
-  stroke: #FFB300;
-  stroke-width: 1;
-}
-.cell {
-  fill: rgba(0, 0, 0, 0);
-}
-.border {
-  stroke: #666;
-  stroke-dasharray: 2 3;
-  fill: #f2f2f2;
-}
-.water {
-  fill: #666;
-}
-#legend rect {
-  stroke: #333;
-  fill: url(#legendGradient);
-}
-.suburb {
-  fill: white;
-  stroke: #ccc;
-}
-.tick text {
-  fill: #333;
-}
-.tick line {
-  stroke: #333;
-}
-.domain {
-  stroke: none;
-}
-#tip {
+#quotaLabel {
+  color: #666;
+  font-size: .85rem;
+  font-weight: bold;
   position: absolute;
-  background: rgba(28, 28, 28, .8);
-  padding: 5px;
-  border-radius: 5px;
-  width: 175px;
-  box-shadow: 1px 1px 5px #666;
-  color: white;
-  pointer-events: none;
+}
+#quotaLine {
+  position: absolute;
+  border-left: dashed .5px #666;
+}
+#prepare {
+  font-family: "ABCSans Black", "Arial Black", sans-serif;
+  font-size: 2rem;
+  color: #666;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
   opacity: 0;
 }
 .bar {
-  height: 20px;
-  width: 100%;
-  background: #666;
-  margin-bottom: 3px;
+  position: absolute;
+  width: 0px;
+  background: #f2f2f2;
   display: flex;
-  justify-content: space-between;
-  font-size: .9rem;
+  font-size: .75em;
 }
-.bar .result {
-  padding-left: 5px;
-  line-height: 20px;
+.stub {
+  padding: 0 5px;
+  margin-right: 3px;
+  width: 185px;
+  text-align: right;
+  background: #FFB300;
+  opacity: 0;
+  color: white;
 }
-.count {
-  line-height: 20px;
+.stub span {
+  font-family: "ABCSans Light", "Arial Narrow", sans-serif;
+}
+.result {
+  background: #FFB300;
+}
+.nan div {
+  background: #333;
+}
+.ALP div {
+  background: #d61515;
+}
+.LIB div {
+  background: #1467cc;
+}
+.GRN div {
+  background: #79c400;
+}
+.UNG div, .IND div {
+  background: #999;
+}
+.result {
+  color: white;
+  text-align: right;
+}
+.elected p::after {
+  font-weight: bold;
+
+  content: "ELECTED";
   padding-right: 5px;
 }
-h1 {
-  font-size: 1rem;
-  font-family: "ABCSans Black", "Arial Black", sans-serif;
-  margin-bottom: 5px;
-}
-p {
+.eliminated p::after {
   font-family: "ABCSans Light", "Arial Narrow", sans-serif;
-  font-size: .8rem;
+  font-size: .7rem;
+  color: #333;
+  content: "ELIMINATED";
 }
 @media only screen and (max-width: 500px) {
+  .bar {
+    font-size: .7em;
+  }
+  .stub {
+    width: 145px;
+  }
   #title {
     font-size: 1rem;
   }
   #footer {
     font-size: .8rem;
   }
+  #selections {
+    justify-content: space-around;
+  }
   .option {
-    width: 70px;
-    margin-left: 5px;
+    width: 45%;
     font-size: 1rem;
   }
-  h1 {
-    font-size: .9rem;
+  .icon svg {
+    width: 3rem;
   }
-  p {
+  #quotaLabel {
     font-size: .7rem;
   }
-  .bar {
-    height: 15px;
-    font-size: .75rem;
+}
+@media only screen and (min-width: 500px) {
+  .option:hover {
+    background: #FFB300;
   }
-  .bar .result {
-    padding-left: 3px;
-    line-height: 15px;
+  a:hover, .icon:hover svg {
+    color: #FFB300;
+    fill: #FFB300;
   }
-  .count {
-    line-height: 15px;
-    padding-right: 3px;
+  .eliminated p::after {
+    font-size: .65rem;
   }
 }
