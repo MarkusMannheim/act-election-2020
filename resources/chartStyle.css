@@ -41,10 +41,8 @@ body {
   left: 0;
   right: 0;
   margin-bottom: .5rem;
-  padding: .5rem;
   display: flex;
   flex-flow: column;
-  border: solid .5px #e6e6e6;
 }
 #selections {
   width: 100%;
@@ -83,7 +81,7 @@ a {
 .option {
   background: #333;
   padding: 5px;
-  width: 135px;
+  width: 140px;
   margin-bottom: .5rem;
   text-align: center;
   box-shadow: 1px 1px 5px #666;
