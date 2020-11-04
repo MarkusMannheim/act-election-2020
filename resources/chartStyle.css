@@ -126,6 +126,7 @@ h1, p {
   background: #f2f2f2;
   display: flex;
   font-size: .75em;
+  overflow: hidden;
 }
 .stub {
   padding: 0 5px;
