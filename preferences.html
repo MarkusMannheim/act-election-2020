@@ -266,7 +266,7 @@
             x.range([0, dimensions.width - 198]);
           }
         y.range([dimensions.y, dimensions.y + dimensions.height]);
-        quotaLabel.style("top", (dimensions.y - quotaSize.height - 5) + "px")
+        quotaLabel.style("top", (dimensions.y + dimensions.height + 5) + "px")
           .style("left", (x(quota) - quotaSize.width / 2 + dimensions.x + (dimensions.width < 500 ? 158 : 198)) + "px");
         quotaLine.style("top", dimensions.y + "px")
           .style("left", (x(quota) + dimensions.x + (dimensions.width < 500 ? 158 : 198)) + "px")
