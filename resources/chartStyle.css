@@ -91,6 +91,7 @@ a {
 }
 .option.selected {
   background: #009CBF;
+  pointer-events: none;
 }
 h1, p {
   margin: 0;
