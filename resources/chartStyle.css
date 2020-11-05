@@ -135,7 +135,7 @@ h1, p {
   margin-right: 3px;
   width: 185px;
   text-align: right;
-  background: #FFB300;
+  background: #999;
   opacity: 0;
   color: white;
 }
@@ -143,7 +143,7 @@ h1, p {
   font-family: "ABCSans Light", "Arial Narrow", sans-serif;
 }
 .result {
-  background: #FFB300;
+  background: #999;
 }
 .nan div {
   background: #333;
@@ -156,9 +156,6 @@ h1, p {
 }
 .GRN div {
   background: #79c400;
-}
-.UNG div, .IND div {
-  background: #999;
 }
 .result {
   color: white;
