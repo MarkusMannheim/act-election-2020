@@ -47,8 +47,7 @@ body {
 #selections {
   width: 100%;
   display: flex;
-  flex-flow: wrap;
-  justify-content: space-around;
+  justify-content: space-between;
   margin-bottom: .5rem;
 }
 #navigation {
@@ -81,13 +80,13 @@ a {
 .option {
   background: #333;
   padding: 5px;
-  width: 140px;
+  width: 112px;
   margin-bottom: .5rem;
   text-align: center;
   box-shadow: 1px 1px 5px #666;
   color: white;
   font-family: "ABCSans Black", "Arial Black", sans-serif;
-  font-size: 1.1rem;
+  font-size: .95rem;
 }
 .option.selected {
   background: #009CBF;
@@ -188,6 +187,7 @@ h1, p {
   }
   #selections {
     justify-content: space-around;
+    flex-flow: wrap;
   }
   .option {
     width: 45%;
