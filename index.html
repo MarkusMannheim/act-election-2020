@@ -35,7 +35,7 @@
         </g>
       </svg>
       <div id="footer">
-        Circle size reflects number of votes at polling place. Data source: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>. Graphic: Markus Mannheim
+        Circle size reflects number of votes for selected party. Data source: <a href='https://www.electionresults.act.gov.au/' target='_blank'>Elections ACT</a>. Graphic: Markus Mannheim
       </div>
       <div id="tip">
         <h1>booth</h1>
@@ -113,8 +113,7 @@
             .rotate([-149.126944, 0]);
           path = d3.geoPath()
             .projection(projection);
-          boothSize = d3.scaleLinear()
-            .domain(d3.extent(boothData.features, function(d) { return d.properties.votes; }));
+          boothSize = d3.scaleLinear();
           boothColour = d3.scaleLinear()
             .interpolate(d3.interpolateHsl);
           voronoi = d3.voronoi()
@@ -145,10 +144,11 @@
             .tickSizeOuter(0);
           // map dimensions
           window.addEventListener("resize", resize);
-          resize()
+          resize();
         });
 
       function clickOption() {
+        console.log("clickOption()");
         type = this.getAttribute("value");
         options.classed("selected", false);
         this.classList.add("selected");
@@ -156,9 +156,13 @@
       }
 
       function colourBooths() {
+        console.log("colourBooths()");
         boothColour.domain(d3.extent(boothData.features, function(d) { return d.properties[types[type][0]]; }))
           .range(["white", types[type][1]]);
-        d3.selectAll(".booth").style("fill", function(d) { return boothColour(d.data.properties[types[type][0]]); });
+        boothSize.range(width < 500 ? [4, 11] : [4, 13])
+          .domain(d3.extent(boothData.features, function(d) { return d.properties[types[type][0]] * d.properties.votes; }));
+        d3.selectAll(".booth").style("fill", function(d) { return boothColour(d.data.properties[types[type][0]]); })
+          .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties[types[type][0]] * d.data.properties.votes))(d.data); });
         y.domain(boothColour.domain());
         d3.selectAll("stop")
           .attr("style", function(d) { return "stop-color: " + boothColour(boothColour.domain()[0] + (boothColour.domain()[1] - boothColour.domain()[0]) * (d / 10)) + "; stop-opacity: 1;"; });
@@ -166,11 +170,11 @@
       }
 
       function resize() {
+        console.log("resize()");
         dimensions = document.getElementById("map").getBoundingClientRect();
         width = dimensions.width;
         height = dimensions.height;
         margin = { top: 45, right: 15, bottom: 15, left: 15 };
-        boothSize.range(width < 500 ? [4, 10] : [4, 13]);
         projection.fitExtent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]], boothData);
         mapGroup.selectAll(".border, .suburb, .water")
           .attr("d", path);
@@ -181,16 +185,13 @@
             .data(voronoi.polygons(boothData.features, function(d) { return d.data.properties.booth; }));
         boothGroups.exit()
           .remove();
-        boothGroups.select(".booth")
-          .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties.votes))(d.data); });
         boothGroups.select(".cell")
           .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; });
         entering = boothGroups
           .enter().append("g")
             .classed("boothGroup", true);
         entering.append("path")
-          .classed("booth", true)
-          .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties.votes))(d.data); });
+          .classed("booth", true);
         entering.append("path")
           .classed("cell", true)
           .attr("d", function(d) { return !d ? null : d3.line()(d) + "Z"; })
@@ -209,17 +210,18 @@
       }
 
       function boothHover(d) {
+        console.log("boothHover()");
         d3.select(this.parentNode)
           .classed("selected", true)
           .raise()
           .select(".booth")
-            .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties.votes) + 2)(d.data); });
+            .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties[types[type][0]] * d.data.properties.votes) + 2)(d.data); });
         // fill in tooltip
         tip.style("opacity", 0)
           .style("top", "0px")
           .style("left", "0px");
         tip.select("h1").text(d.data.properties.booth);
-        tip.select("p").text(d3.format(",.0f")(d.data.properties.votes) + " votes");
+        tip.select("p").text(d3.format(",.0f")(d.data.properties.votes) + " votes (total)");
         let votes = [
           ["labor", d.data.properties.labor, "LAB"],
           ["liberals", d.data.properties.liberals, "LIB"],
@@ -270,11 +272,12 @@
       }
 
       function boothOut(d) {
+        console.log("boothOut()");
         d3.select(this.parentNode)
           .classed("selected", false);
         d3.select(this.parentNode)
           .select(".booth")
-            .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties.votes))(d.data); });
+            .attr("d", function(d) { return path.pointRadius(boothSize(d.data.properties[types[type][0]] * d.data.properties.votes))(d.data); });
         bars.remove();
         tip.style("opacity", 0);
       }

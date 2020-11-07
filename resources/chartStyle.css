@@ -47,7 +47,8 @@ body {
 #selections {
   width: 100%;
   display: flex;
-  justify-content: space-between;
+  flex-flow: wrap;
+  justify-content: space-around;
   margin-bottom: .5rem;
 }
 #navigation {
@@ -80,13 +81,13 @@ a {
 .option {
   background: #333;
   padding: 5px;
-  width: 112px;
+  width: 140px;
   margin-bottom: .5rem;
   text-align: center;
   box-shadow: 1px 1px 5px #666;
   color: white;
   font-family: "ABCSans Black", "Arial Black", sans-serif;
-  font-size: .95rem;
+  font-size: 1.1rem;
 }
 .option.selected {
   background: #009CBF;
@@ -187,10 +188,10 @@ h1, p {
   }
   #selections {
     justify-content: space-around;
-    flex-flow: wrap;
   }
   .option {
     width: 45%;
+    font-size: 1rem;
   }
   .icon svg {
     width: 3rem;
