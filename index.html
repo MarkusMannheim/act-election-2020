@@ -31,7 +31,9 @@
             <linearGradient id="legendGradient" x1="0%" x2="0%" y1="100%" y2="0%"></linearGradient>
           </defs>
           <rect></rect>
-          <g id="axisGroup"></g>
+          <g id="axisGroup">
+            <text x="30" y="-5" id="axisLabel">votes:</text>
+          </g>
         </g>
       </svg>
       <div id="footer">
@@ -52,6 +54,7 @@
       graph = d3.select("#graph");
       legend = d3.select("#legend");
       axisGroup = d3.select("#axisGroup");
+      axisLabel = d3.select("#axisLabel");
       // set up selections
       types = [
         ["labor", "#d61515"],
@@ -148,7 +151,6 @@
         });
 
       function clickOption() {
-        console.log("clickOption()");
         type = this.getAttribute("value");
         options.classed("selected", false);
         this.classList.add("selected");
@@ -156,7 +158,6 @@
       }
 
       function colourBooths() {
-        console.log("colourBooths()");
         boothColour.domain(d3.extent(boothData.features, function(d) { return d.properties[types[type][0]]; }))
           .range(["white", types[type][1]]);
         boothSize.range(width < 500 ? [4, 11] : [4, 13])
@@ -170,7 +171,6 @@
       }
 
       function resize() {
-        console.log("resize()");
         dimensions = document.getElementById("map").getBoundingClientRect();
         width = dimensions.width;
         height = dimensions.height;
@@ -210,7 +210,6 @@
       }
 
       function boothHover(d) {
-        console.log("boothHover()");
         d3.select(this.parentNode)
           .classed("selected", true)
           .raise()
@@ -272,7 +271,6 @@
       }
 
       function boothOut(d) {
-        console.log("boothOut()");
         d3.select(this.parentNode)
           .classed("selected", false);
         d3.select(this.parentNode)
