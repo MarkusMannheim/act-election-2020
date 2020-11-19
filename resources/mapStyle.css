@@ -124,6 +124,12 @@ h1, p {
 .domain {
   stroke: none;
 }
+#axisLabel {
+  fill: #333;
+  text-anchor: end;
+  font-size: .85rem;
+  font-weight: bold;
+}
 #tip {
   position: absolute;
   background: rgba(28, 28, 28, .8);
@@ -190,5 +196,8 @@ p {
   .count {
     line-height: 15px;
     padding-right: 3px;
+  }
+   #axisLabel {
+    font-size: .8rem;
   }
 }
